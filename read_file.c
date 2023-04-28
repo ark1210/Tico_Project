@@ -16,7 +16,7 @@ struct instruction {
 };
 
 union value {
-    unsigned char num;
+    signed char num;
     struct instruction inst;
 };
 
@@ -88,39 +88,42 @@ enum operator toEnum(char *token) {
             return TERM;
 }
 
-void load_on_union(char * s, union value *memArray){
-    // ':'을 기준으로 union의 인덱스와 명령어를 구분
+void load_on_union(char * s, union value *memArray) {
+    if (s == NULL) {
+        return;
+    }
+
+    char input_line[256];
+    strcpy(input_line, s);
+
     char * token;
     char * remain_sentence;
-    token = strtok_r(s, ":", &remain_sentence); // '\n'을 추가한 구분자
+    token = strtok_r(input_line, ":", &remain_sentence);
     int idx = atoi(token);
     token = strtok_r(NULL, " ", &remain_sentence);
-    // 명령어가 value인가 instruction인가?
-    if (strstr(token, "\"") != NULL) {
-        // value
+    if (token != NULL && strstr(token, "\"") != NULL) {
         char temp;
         sscanf(token, "\"%c\"", &temp);
         memArray[idx].num = temp;
     }
     else {
-        // instruction
         int i = 0;
         while(token){
             if(strcmp(token, "9") > 0){
-                // operator
                 memArray[idx].inst.op = toEnum(token);
             } else {
-                // operand
                 int operand = atoi(token);
                 if (i == 0) memArray[idx].inst.r1 = operand;
                 else if (i == 1) memArray[idx].inst.r2 = operand;
                 else if (i == 2) memArray[idx].inst.r3 = operand;
                 i++;
             }
-            token = strtok_r(NULL, " ", &remain_sentence); // '\n'을 추가한 구분자
+            token = strtok_r(NULL, " ", &remain_sentence);
         }
     }
 }
+
+
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
